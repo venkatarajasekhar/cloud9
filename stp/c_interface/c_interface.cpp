@@ -18,10 +18,10 @@
 //These typedefs lower the effort of using the keyboard to type (too
 //many overloaded meanings of the word type)
 typedef BEEV::ASTNode  node;
-typedef BEEV::ASTNode* nodestar;
-typedef BEEV::BeevMgr* bmstar;
+typedef BEEV::ASTNode* nodestar = NULL ;
+typedef BEEV::BeevMgr* bmstar = NULL;
 typedef BEEV::ASTVec   nodelist;
-typedef BEEV::CompleteCounterExample* CompleteCEStar;
+typedef BEEV::CompleteCounterExample* CompleteCEStar = NULL;
 BEEV::ASTVec *decls = NULL;
 //vector<BEEV::ASTNode *> created_exprs;
 bool cinterface_exprdelete_on = false;
@@ -40,22 +40,35 @@ void vc_setFlags(char c) {
   
   switch(c) {
   case 'a' :
+     /*
+     Block usage
+     */
+      {
     BEEV::optimize = false;
     BEEV::wordlevel_solve = false;
     break;
+      }
   case 'b':
+      {
     BEEV::print_STPinput_back = true;
     break;
+      }
   case 'c':
+      {
     BEEV::construct_counterexample = true;
     break;
+      }
   case 'd':
+      {
     BEEV::construct_counterexample = true;
     BEEV::check_counterexample = true;
     break;
+      }
   case 'e':
+      {
     BEEV::variable_activity_optimize = true;
     break;
+      }
   case 'f':
     BEEV::smtlib_parser_enable = true;
     break;
@@ -97,10 +110,12 @@ void vc_setFlags(char c) {
     BEEV::print_sat_varorder = true;
     break;
   default:
+      {
     std::string s = "C_interface: vc_setFlags: Unrecognized commandline flag:\n";
     s += helpstring;
     BEEV::FatalError(s.c_str());
     break;
+      }
   }
 }
 
@@ -143,14 +158,18 @@ static void vc_printVarDeclsToStream(VC vc, ostream &os) {
     node a = *i;
     switch(a.GetType()) {
     case BEEV::BITVECTOR_TYPE:
+        {
       a.PL_Print(os);
       os << " : BITVECTOR(" << a.GetValueWidth() << ");" << endl;
       break;
+        }
     case BEEV::ARRAY_TYPE:
+        {
       a.PL_Print(os);
       os << " : ARRAY " << "BITVECTOR(" << a.GetIndexWidth() << ") OF ";
       os << "BITVECTOR(" << a.GetValueWidth() << ");" << endl;
       break;
+        }
     case BEEV::BOOLEAN_TYPE:
       a.PL_Print(os);
       os << " : BOOLEAN;" << endl;
@@ -397,26 +416,39 @@ void vc_printCounterExample(VC vc) {
 //  */
 
 Expr vc_getCounterExample(VC vc, Expr e) {
-  nodestar a = (nodestar)e;
-  bmstar b = (bmstar)vc;    
+  nodestar a = static_cast<nodestar>e;
+  bmstar *b =  dynamic_cast<bmstar>&vc;    
 
   bool t = false;
   if(b->CounterExampleSize())
     t = true;
+  try{
   nodestar output = new node(b->GetCounterExample(t, *a));  
+  }catch(bad_alloc &){
+  // need to write the code
+  }
   //if(cinterface_exprdelete_on) created_exprs.push_back(output);
   return output;
 }
+/*
+dynamic_cast for converting pointers/references within an inheritance hierarchy
+Assumed that Class VC,BMSTAR in herited
+*/
 
 int vc_counterexample_size(VC vc) {
-  bmstar b = (bmstar)vc;
-  return b->CounterExampleSize();
+  static bmstar *bmstar;
+  bmstar *b = static_cast<bmstar*>&vc;
+  return dynamic_cast<bmstar*> b->CounterExampleSize();
 }
 
 WholeCounterExample vc_getWholeCounterExample(VC vc) {
-  bmstar b = (bmstar)vc;
+  bmstar b = static_cast<bmstar*>&vc;
   CompleteCEStar c = 
+    try{
     new BEEV::CompleteCounterExample(b->GetCompleteCounterExample(), b);
+    }catch(bad_alloc &){
+    //
+    }
   return c;
 }
 
