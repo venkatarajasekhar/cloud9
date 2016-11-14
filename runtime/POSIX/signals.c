@@ -43,10 +43,26 @@
 #include <stdio.h>
 #include <bits/signum.h>
 #include <signal.h>
-
 #include <klee/klee.h>
 
 #ifdef HAVE_POSIX_SIGNALS
+void sig_handler(int signo)
+{
+  switch(signo){
+  case SIGINT:
+      /* Logic Required*/
+      break;
+  case SIG_ERR:
+    /* Logic Required*/
+      break;
+ case SIGKILL:
+    /* Logic Required*/
+      break;
+ case SIGSTOP:
+    /* Logic Required*/
+      break;
+  } 
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Internal routines
@@ -215,9 +231,9 @@ void __handle_signal() {
 
 void klee_init_signals() {
   proc_data_t *pdata = &__pdata[PID_TO_INDEX(getpid())];
-
   pdata->signaled = 0;
-  pdata->sighand = calloc(1, sizeof(struct sighand_struct));
+// pdata->sighand = calloc(1, sizeof(struct sighand_struct));
+  pdata->sighand = kalloc(sizeof(struct sighand_struct));
   sigemptyset(&pdata->blocked);
   INIT_LIST_HEAD(&pdata->pending.list);
  
